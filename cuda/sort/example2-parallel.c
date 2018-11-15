@@ -3,7 +3,7 @@
 #include <time.h>
 #include <pthread.h>
 
-#define N 5
+#define N 10
 #define LEN 100
 #define THREADS 4
 
@@ -25,7 +25,7 @@ void *BubbleSort(int *vec) {
 
 int main() {
 
-	int i, j, c, tmp;
+	int i, j, c, k, tmp;
 	int **pool;
 	pthread_t th[THREADS];
 
@@ -45,33 +45,35 @@ int main() {
 		printf("\n");
 	}
 
-	// TODO: verificar comportamento indeterministico na geracao das threads (me chamaram pra almocar caralho)
 	clock_t start = clock();
-	for (i = 0; i < N; i++) {
+	for (i = 0; i < N; i = i + THREADS) {
 
 		// Cria o maximo de threads cada THREAD vezes
-		if (i % THREADS == 0) {
-			c = 0;
-			while ((c < THREADS) && (i + c) < N) {
-				pthread_create(&th[i], NULL, BubbleSort, (void*) pool[i+c]);
-				c++;
-			}
+		c = 0;
+		while ((c < THREADS) && ((i + c) < N)) {
+			pthread_create(&th[c], NULL, BubbleSort, (void*) pool[i+c]);
+			c++;
+		}
 
-			// Espera o termino das threads
-			for (c = 0; c < THREADS; c++)
-				pthread_join(&th[c], NULL);
+		// Espera o termino das threads
+		void *retval;
+		for (k = 0; k < c; k++) {
+			pthread_join(th[k], &retval);
 		}
 	}
+
 	clock_t finish = clock();
 	double elapsed = (double)(finish - start) / CLOCKS_PER_SEC;
 	
 	// Conteudo de todos N arrays apos a ordenacao
-	printf("\nArrays Ordenados: (demorou %lf segundos)\n", elapsed);
+	printf("\nArrays Ordenados: \n");
 	for (i = 0; i < N; i++) {
 		for (j = 0; j < LEN; j++)
 			printf("[%d] = %d\n", j, pool[i][j]);
 		printf("\n");
 	}
+
+	printf("Tempo de Execucao: %lf segundos\n", elapsed);
 
 	free(pool);
 	return 0;
