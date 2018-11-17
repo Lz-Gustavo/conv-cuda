@@ -2,9 +2,10 @@
 #include <stdlib.h>
 #include <time.h>
 #include <pthread.h>
+#include <glib-2.0/glib.h>
 
 #define N 10
-#define LEN 100
+#define LEN 1000
 #define THREADS 4
 
 void *BubbleSort(int *vec) {
@@ -45,7 +46,7 @@ int main() {
 		printf("\n");
 	}
 
-	clock_t start = clock();
+	GTimer* timer = g_timer_new();
 	for (i = 0; i < N; i = i + THREADS) {
 
 		// Cria o maximo de threads cada THREAD vezes
@@ -62,8 +63,9 @@ int main() {
 		}
 	}
 
-	clock_t finish = clock();
-	double elapsed = (double)(finish - start) / CLOCKS_PER_SEC;
+	g_timer_stop(timer);	
+	gulong micro;
+	double elapsed = g_timer_elapsed(timer, &micro);
 	
 	// Conteudo de todos N arrays apos a ordenacao
 	printf("\nArrays Ordenados: \n");

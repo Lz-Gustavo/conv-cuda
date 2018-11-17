@@ -1,14 +1,16 @@
 #include <stdio.h>
 #include <time.h>
+#include <glib-2.0/glib.h>
 
-#define N 100
+#define N 10
+#define LEN 1000
 
 void BubbleSort(int *vec) {
 
 	int i, j, aux;
 
-	for (i = 0; i < N - 1; i++) {
-		for (j = i + 1; j < N; j++) {
+	for (i = 0; i < LEN - 1; i++) {
+		for (j = i + 1; j < LEN; j++) {
 			if (vec[j] < vec[i]) {
 				aux = vec[i];
 				vec[i] = vec[j];
@@ -20,27 +22,43 @@ void BubbleSort(int *vec) {
 
 int main() {
 
-	int i;
-	int array[N];
+	int i, j;
+	int **pool;
+
+	pool = malloc(N * sizeof(int*));
+	for (i = 0; i < N; i++)
+		pool[i] = malloc(LEN * sizeof(int));
 
 	srand(time (NULL));
 
-	printf("Array:\n");
+	// Mostra conteudo de todos N arrays pre-ordenacao
+	printf("Arrays:\n");
 	for (i = 0; i < N; i++) {
-		array[i] = rand() % N;
-		printf("[%d] = %d\n", i, array[i]);
+		for (j = 0; j < LEN; j++) {
+			pool[i][j] = rand() % LEN;
+			printf("[%d] = %d\n", j, pool[i][j]);
+		}
+		printf("\n");
 	}
 
-	clock_t start = clock();
-	BubbleSort(array);
-	clock_t finish = clock();
-	
-	double elapsed = (double)(finish - start) / CLOCKS_PER_SEC;
-
-	printf("\nArray Ordenado: (demorou %lf segundos)\n", elapsed);
+	GTimer* timer = g_timer_new();
 	for (i = 0; i < N; i++)
-		printf("[%d] = %d\n", i, array[i]);
-	printf("\n");
+		BubbleSort(pool[i]);
 
+	g_timer_stop(timer);	
+	gulong micro;
+	double elapsed = g_timer_elapsed(timer, &micro);
+
+	// Conteudo de todos N arrays apos a ordenacao
+	printf("\nArrays Ordenados: \n");
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < LEN; j++)
+			printf("[%d] = %d\n", j, pool[i][j]);
+		printf("\n");
+	}
+
+	printf("Tempo de Execucao: %lf segundos\n", elapsed);
+
+	free(pool);
 	return 0;
 }
