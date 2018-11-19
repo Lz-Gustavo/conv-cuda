@@ -2,8 +2,7 @@
 
 int main( void ) {
 	
-	cudaDeviceProp
-	prop;
+	cudaDeviceProp prop;
 	int count;
 	
 	cudaGetDeviceCount( &count );
