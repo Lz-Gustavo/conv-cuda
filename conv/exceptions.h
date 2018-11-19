@@ -15,7 +15,7 @@ class ValueException : public std::exception {
 class ResourceException : public std::exception {
 
 	virtual const char* what() const throw() {
-		return "Insufficient storage.";
+		return "Image not found or Insufficient memory.";
 	}
 
 } d_ecp;
