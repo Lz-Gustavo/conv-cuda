@@ -12,6 +12,9 @@
 #include "stb_image.h"
 #define USE_MGL_NAMESPACE
 
+#define TJE_IMPLEMENTATION
+#include "tiny_jpeg.h"
+
 namespace conv {
 
 	class Image2D {
@@ -27,39 +30,30 @@ namespace conv {
 	public:
 		Image2D(std::string filename) {
 
-			try {
+			image = stbi_load(filename.c_str(), &size_x, &size_y, &nrChannels, 3);			
+			if (!image) {
+				throw (d_ecp);
+				return;
+			}
 
-				image = stbi_load(filename.c_str(), &size_x, &size_y, &nrChannels, 3);			
-				if (!image)
-					throw (d_ecp);
+			image_copy_r = new unsigned short*[size_y];
+			image_copy_g = new unsigned short*[size_y];
+			image_copy_b = new unsigned short*[size_y];
+			
+			for (int i = 0; i < size_y; ++i) {
 
-				image_copy_r = new unsigned short*[size_y];
-				image_copy_g = new unsigned short*[size_y];
-				image_copy_b = new unsigned short*[size_y];
+				image_copy_r[i] = new unsigned short[size_x];
+				image_copy_g[i] = new unsigned short[size_x];
+				image_copy_b[i] = new unsigned short[size_x];
 				
-				for (int i = 0; i < size_y; ++i) {
-
-					image_copy_r[i] = new unsigned short[size_x];
-					image_copy_g[i] = new unsigned short[size_x];
-					image_copy_b[i] = new unsigned short[size_x];
+				for (int j = 0; j < size_x; ++j) {
 					
-					for (int j = 0; j < size_x; ++j) {
-						
-						unsigned char *aux = getPixel(i, j);
+					unsigned char *aux = getPixel(i, j);
 
-						image_copy_r[i][j] = aux[0];
-						image_copy_g[i][j] = aux[1];
-						image_copy_b[i][j] = aux[2];
-					}
+					image_copy_r[i][j] = aux[0];
+					image_copy_g[i][j] = aux[1];
+					image_copy_b[i][j] = aux[2];
 				}
-
-				// std::cout << "Width: " << size_x << std::endl;
-				// std::cout << "Height: " << size_y << std::endl;
-				// std::cout << "Channels: " << nrChannels << std::endl;
-
-			} catch (std::exception& e) {
-
-				std::cout << e.what() << std::endl; 
 			}
 		}
 		~Image2D() {
@@ -98,79 +92,73 @@ namespace conv {
 
 		void ApplyMask(std::vector<std::vector<int>*> *kernel) {
 
-			try {
+			int mask_summ = 0;
 
-				int mask_summ = 0;
-
-				//check the element summ before use
-				for (int i = 0; i < kernel->size(); ++i) {
-					for (int j = 0; j < kernel->at(i)->size(); ++j) {
-						
-						mask_summ += kernel->at(i)->at(j);
-					}
-				}
-				if (mask_summ == 0) {
-					throw(v_ecp);
-				}
-				
-				for (int i = 1; i < (size_y - 1) ; ++i) {
-					for (int j = 1; j < (size_x - 1); ++j) {
-
-						// Red Channel Matrix
-						short temp_r = (short) (
-
-							(image_copy_r[i-1][j-1] * kernel->at(0)->at(0)) +  (image_copy_r[i-1][j] * kernel->at(0)->at(1)) + (image_copy_r[i-1][j+1] * kernel->at(0)->at(2))
-							+ (image_copy_r[i][j-1] * kernel->at(1)->at(0)) + (image_copy_r[i][j] * kernel->at(1)->at(1)) + (image_copy_r[i][j+1] * kernel->at(1)->at(2))
-							+ (image_copy_r[i+1][j-1] * kernel->at(2)->at(0)) + (image_copy_r[i+1][j] * kernel->at(2)->at(1)) + (image_copy_r[i+1][j+1] * kernel->at(2)->at(2))
-							
-						) / mask_summ;
-
-						if (temp_r < 0)
-							image_copy_r[i][j] = 0;
-						else if (temp_r > 255)
-							image_copy_r[i][j] = 255;
-						else
-							image_copy_r[i][j] = temp_r;
-
-
-						// Green Channel Matrix			
-						short temp_g = (short) (
-
-							(image_copy_g[i-1][j-1] * kernel->at(0)->at(0)) +  (image_copy_g[i-1][j] * kernel->at(0)->at(1)) + (image_copy_g[i-1][j+1] * kernel->at(0)->at(2))
-							+ (image_copy_g[i][j-1] * kernel->at(1)->at(0)) + (image_copy_g[i][j] * kernel->at(1)->at(1)) + (image_copy_g[i][j+1] * kernel->at(1)->at(2))
-							+ (image_copy_g[i+1][j-1] * kernel->at(2)->at(0)) + (image_copy_g[i+1][j] * kernel->at(2)->at(1)) + (image_copy_g[i+1][j+1] * kernel->at(2)->at(2))
-							
-						) / mask_summ;
-
-						if (temp_g < 0)
-							image_copy_g[i][j] = 0;
-						else if (temp_g > 255)
-							image_copy_g[i][j] = 255;
-						else
-							image_copy_g[i][j] = temp_g;
-						
-
-						// Blue Channel Matrix
-						short temp_b = (short) (
-
-							(image_copy_b[i-1][j-1] * kernel->at(0)->at(0)) +  (image_copy_b[i-1][j] * kernel->at(0)->at(1)) + (image_copy_b[i-1][j+1] * kernel->at(0)->at(2))
-							+ (image_copy_b[i][j-1] * kernel->at(1)->at(0)) + (image_copy_b[i][j] * kernel->at(1)->at(1)) + (image_copy_b[i][j+1] * kernel->at(1)->at(2))
-							+ (image_copy_b[i+1][j-1] * kernel->at(2)->at(0)) + (image_copy_b[i+1][j] * kernel->at(2)->at(1)) + (image_copy_b[i+1][j+1] * kernel->at(2)->at(2))
-							
-						) / mask_summ;
-
-						if (temp_b < 0)
-							image_copy_b[i][j] = 0;
-						else if (temp_b > 255)
-							image_copy_b[i][j] = 255;
-						else
-							image_copy_b[i][j] = temp_b;
+			//check the element summ before use
+			for (int i = 0; i < kernel->size(); ++i) {
+				for (int j = 0; j < kernel->at(i)->size(); ++j) {
 					
-					}
+					mask_summ += kernel->at(i)->at(j);
 				}
-			} catch (std::exception &e) {
+			}
+			if (mask_summ == 0) {
+				throw(v_ecp);
+				return;
+			}
+			
+			for (int i = 1; i < (size_y - 1) ; ++i) {
+				for (int j = 1; j < (size_x - 1); ++j) {
 
-				std::cout << e.what() << std::endl;
+					// Red Channel Matrix
+					short temp_r = (short) (
+
+						(getPixel(i-1, j-1, 0) * kernel->at(0)->at(0)) +  (getPixel(i-1, j, 0) * kernel->at(0)->at(1)) + (getPixel(i-1, j+1, 0) * kernel->at(0)->at(2))
+						+ (getPixel(i, j-1, 0) * kernel->at(1)->at(0)) + (getPixel(i, j, 0) * kernel->at(1)->at(1)) + (getPixel(i, j+1, 0) * kernel->at(1)->at(2))
+						+ (getPixel(i+1, j-1, 0) * kernel->at(2)->at(0)) + (getPixel(i+1, j, 0) * kernel->at(2)->at(1)) + (getPixel(i+1, j+1, 0) * kernel->at(2)->at(2))
+						
+					) / mask_summ;
+
+					if (temp_r < 0)
+						image_copy_r[i][j] = 0;
+					else if (temp_r > 255)
+						image_copy_r[i][j] = 255;
+					else
+						image_copy_r[i][j] = temp_r;
+
+
+					// Green Channel Matrix			
+					short temp_g = (short) (
+
+						(getPixel(i-1, j-1, 1) * kernel->at(0)->at(0)) +  (getPixel(i-1, j, 1) * kernel->at(0)->at(1)) + (getPixel(i-1, j+1, 1) * kernel->at(0)->at(2))
+						+ (getPixel(i, j-1, 1) * kernel->at(1)->at(0)) + (getPixel(i, j, 1) * kernel->at(1)->at(1)) + (getPixel(i, j+1, 1) * kernel->at(1)->at(2))
+						+ (getPixel(i+1, j-1, 1) * kernel->at(2)->at(0)) + (getPixel(i+1, j, 1) * kernel->at(2)->at(1)) + (getPixel(i+1, j+1, 1) * kernel->at(2)->at(2))
+						
+					) / mask_summ;
+
+					if (temp_g < 0)
+						image_copy_g[i][j] = 0;
+					else if (temp_g > 255)
+						image_copy_g[i][j] = 255;
+					else
+						image_copy_g[i][j] = temp_g;
+					
+
+					// Blue Channel Matrix
+					short temp_b = (short) (
+
+						(getPixel(i-1, j-1, 2) * kernel->at(0)->at(0)) +  (getPixel(i-1, j, 2) * kernel->at(0)->at(1)) + (getPixel(i-1, j+1, 2) * kernel->at(0)->at(2))
+						+ (getPixel(i, j-1, 2) * kernel->at(1)->at(0)) + (getPixel(i, j, 2) * kernel->at(1)->at(1)) + (getPixel(i, j+1, 2) * kernel->at(1)->at(2))
+						+ (getPixel(i+1, j-1, 2) * kernel->at(2)->at(0)) + (getPixel(i+1, j, 2) * kernel->at(2)->at(1)) + (getPixel(i+1, j+1, 2) * kernel->at(2)->at(2))
+						
+					) / mask_summ;
+
+					if (temp_b < 0)
+						image_copy_b[i][j] = 0;
+					else if (temp_b > 255)
+						image_copy_b[i][j] = 255;
+					else
+						image_copy_b[i][j] = temp_b;	
+				}
 			}
 		}
 
@@ -203,6 +191,29 @@ namespace conv {
 				std::cout << std::endl;
 			}
 		}
+
+		void generateImage(std::string filename) {
+			
+			int real_size = 3 * (size_x * size_y);
+			unsigned char *output_data = new unsigned char[real_size];
+
+			int k = 0;
+			for (int i = 0; i < size_x; ++i) {
+				
+				for (int j = 0; j < size_y; ++j) {
+
+					output_data[k] = (unsigned char) image_copy_r[j][i];
+					output_data[k+1] = (unsigned char) image_copy_r[j][i];
+					output_data[k+2] = (unsigned char) image_copy_r[j][i];
+					k += 3;
+				}
+			}
+
+			if (!tje_encode_to_file(filename.c_str(), size_x, size_y, 3, output_data))
+				throw(t_ecp);
+
+			delete output_data;
+		}
 	};
 
 	class Kernel {
@@ -224,9 +235,6 @@ namespace conv {
 			byte >> size_x;
 			byte >> size_y;
 			byte.clear();
-			
-			//std::cout << "size x: " << size_x << std::endl;
-			//std::cout << "size y: " << size_y << std::endl;
 
 			mask = new std::vector<std::vector<int>*>();
 			while (getline(file, line)) {

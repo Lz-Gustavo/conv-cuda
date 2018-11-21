@@ -20,4 +20,12 @@ class ResourceException : public std::exception {
 
 } d_ecp;
 
+class TinyException : public std::exception {
+
+	virtual const char* what() const throw() {
+		return "Could not write JPEG.";
+	}
+
+} t_ecp;
+
 #endif
