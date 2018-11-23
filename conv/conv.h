@@ -203,8 +203,8 @@ namespace conv {
 				for (int j = 0; j < size_y; ++j) {
 
 					output_data[k] = (unsigned char) image_copy_r[j][i];
-					output_data[k+1] = (unsigned char) image_copy_r[j][i];
-					output_data[k+2] = (unsigned char) image_copy_r[j][i];
+					output_data[k+1] = (unsigned char) image_copy_g[j][i];
+					output_data[k+2] = (unsigned char) image_copy_b[j][i];
 					k += 3;
 				}
 			}
