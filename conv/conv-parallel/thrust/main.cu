@@ -1,5 +1,5 @@
 #include <iostream>
-#include "thrust-conv.h"
+#include "thrust-conv.cuh"
 
 using namespace conv;
 using namespace std;
