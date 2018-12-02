@@ -7,7 +7,6 @@
 using namespace conv;
 using namespace std;
 
-
 typedef unsigned short* arrayChn;
 
 __global__ 
@@ -33,7 +32,7 @@ void generateImage(string filename, arrayChn red, arrayChn green, arrayChn blue,
 		output_data[k] = (unsigned char) red[i];
 		output_data[k+1] = (unsigned char) green[i];
 		output_data[k+2] = (unsigned char) blue[i];
-		k++;
+		k += 3;
 	}
 
 	if (!tje_encode_to_file(filename.c_str(), side, side, 3, output_data))
