@@ -9,11 +9,11 @@
 #include "exceptions.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "../../stb_image.h"
 #define USE_MGL_NAMESPACE
 
 #define TJE_IMPLEMENTATION
-#include "tiny_jpeg.h"
+#include "../../tiny_jpeg.h"
 
 namespace conv {
 
@@ -130,6 +130,18 @@ namespace conv {
 
 		unsigned short** getBlue() {
 			return image_copy_b;
+		}
+
+		void setRed(unsigned short** r) {
+			image_copy_r = r;
+		}
+
+		void setGreen(unsigned short** g) {
+			image_copy_g = g;
+		}
+
+		void setBlue(unsigned short** b) {
+			image_copy_b = b;
 		}
 	};
 
