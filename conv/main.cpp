@@ -11,7 +11,7 @@ int main() {
 		Kernel *k = new Kernel("kernel.txt");
 		k->showMask();
 
-		Image2D *img = new Image2D("img/duck.jpg");
+		Image2D *img = new Image2D("img/simulation/1.jpg");
 		img->showImage();
 
 		std::cout << std::endl << "======================" << std::endl;
@@ -19,7 +19,7 @@ int main() {
 		img->ApplyMask(k->getMask());
 		img->showImage();
 		
-		img->generateImage("img/duck-test.jpg");
+		img->generateImage("img/simulation/1-test1.jpg");
 
 		delete k;
 		delete img;
