@@ -203,6 +203,38 @@ namespace conv {
 				std::cout << std::endl;
 			}
 		}
+
+		int *getLinear() {
+			
+			int *line = new int[size_x * size_y];
+
+			int k = 0;
+			for (int i = 0; i < size_x; ++i) {
+				for (int j = 0; j < size_y; ++j) {
+					line[k] = mask->at(j)->at(i);
+					k++;
+				}
+			}
+
+			return line;
+		}
+
+		int getLinearSize() {
+			return size_x*size_y;
+		}
+
+		int getSum() {
+
+			int mask_summ;
+
+			for (int i = 0; i < mask->size(); ++i) {
+				for (int j = 0; j < mask->at(i)->size(); ++j) {
+					mask_summ += mask->at(i)->at(j);
+				}
+			}
+
+			return mask_summ;
+		}
 	};
 }
 
