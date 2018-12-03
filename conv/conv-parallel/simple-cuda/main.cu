@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
 
 	try {
 		for (int id = 1; id <= NumImg; ++id)
-			list_imgs.push_back(new Image2D("../../img/simulation/"+to_string(id)+".jpg"));
+			list_imgs.push_back(new Image2D("../../img/google/animal/"+to_string(id)+".jpg"));
 	
 	} catch (exception &e) {
 		cout << e.what() << std::endl;
@@ -194,7 +194,7 @@ int main(int argc, char **argv) {
 	cudaMemcpy(blue_host, blue_device, (NumImg * len) * sizeof(unsigned char), cudaMemcpyDeviceToHost);
 
 	for (int i = 0; i < NumImg; i++) {
-		generateImage("../../img/simulation/"+to_string(i+1)+"-out.jpg", red_host, green_host, blue_host, i*len, len, size_x);
+		generateImage("../../img/google/animal/"+to_string(i+1)+"-out.jpg", red_host, green_host, blue_host, i*len, len, size_x);
 	}
 
 	cudaFree(knl_device);
