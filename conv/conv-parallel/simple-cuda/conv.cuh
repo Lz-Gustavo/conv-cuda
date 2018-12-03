@@ -23,9 +23,9 @@ namespace conv {
 		int size_y;
 		int size_x;
 		int nrChannels;
-		unsigned short** image_copy_r;
-		unsigned short** image_copy_g;
-		unsigned short** image_copy_b;
+		unsigned char** image_copy_r;
+		unsigned char** image_copy_g;
+		unsigned char** image_copy_b;
 
 	public:
 		Image2D(std::string filename) {
@@ -36,15 +36,15 @@ namespace conv {
 				return;
 			}
 
-			image_copy_r = new unsigned short*[size_y];
-			image_copy_g = new unsigned short*[size_y];
-			image_copy_b = new unsigned short*[size_y];
+			image_copy_r = new unsigned char*[size_y];
+			image_copy_g = new unsigned char*[size_y];
+			image_copy_b = new unsigned char*[size_y];
 			
 			for (int i = 0; i < size_y; ++i) {
 
-				image_copy_r[i] = new unsigned short[size_x];
-				image_copy_g[i] = new unsigned short[size_x];
-				image_copy_b[i] = new unsigned short[size_x];
+				image_copy_r[i] = new unsigned char[size_x];
+				image_copy_g[i] = new unsigned char[size_x];
+				image_copy_b[i] = new unsigned char[size_x];
 				
 				for (int j = 0; j < size_x; ++j) {
 					
@@ -96,7 +96,7 @@ namespace conv {
 			for (int i = 0; i < size_y; ++i) {
 				for (int j = 0; j < size_x; ++j) {
 
-					std::cout << image_copy_r[i][j] << " ";
+					std::cout << (short) image_copy_r[i][j] << " ";
 				}
 				std::cout << std::endl;
 			}
@@ -105,7 +105,7 @@ namespace conv {
 			for (int i = 0; i < size_y; ++i) {
 				for (int j = 0; j < size_x; ++j) {
 
-					std::cout << image_copy_g[i][j] << " ";
+					std::cout << (short) image_copy_g[i][j] << " ";
 				}
 				std::cout << std::endl;
 			}
@@ -114,35 +114,35 @@ namespace conv {
 			for (int i = 0; i < size_y; ++i) {
 				for (int j = 0; j < size_x; ++j) {
 
-					std::cout << image_copy_b[i][j] << " ";
+					std::cout << (short) image_copy_b[i][j] << " ";
 				}
 				std::cout << std::endl;
 			}
 		}
 
-		unsigned short** getRed() {
+		unsigned char** getRed() {
 			return image_copy_r;
 		}
 
-		unsigned short** getGreen() {
+		unsigned char** getGreen() {
 			return image_copy_g;
 		}
 
-		unsigned short** getBlue() {
+		unsigned char** getBlue() {
 			return image_copy_b;
 		}
 
-		void setRed(unsigned short** r) {
-			image_copy_r = r;
-		}
+		// void setRed(unsigned short** r) {
+		// 	image_copy_r = r;
+		// }
 
-		void setGreen(unsigned short** g) {
-			image_copy_g = g;
-		}
+		// void setGreen(unsigned short** g) {
+		// 	image_copy_g = g;
+		// }
 
-		void setBlue(unsigned short** b) {
-			image_copy_b = b;
-		}
+		// void setBlue(unsigned short** b) {
+		// 	image_copy_b = b;
+		// }
 	};
 
 	class Kernel {

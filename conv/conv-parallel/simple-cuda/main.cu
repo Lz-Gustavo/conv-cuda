@@ -7,7 +7,7 @@
 using namespace conv;
 using namespace std;
 
-typedef unsigned short* arrayChn;
+typedef unsigned char* arrayChn;
 
 __global__ 
 void ApplyMask(arrayChn old_r, arrayChn old_g, arrayChn old_b, int len, int side, int* kernel, int knl_size, int knl_sum, arrayChn red, arrayChn green, arrayChn blue, int NumImg) {
@@ -33,11 +33,11 @@ void ApplyMask(arrayChn old_r, arrayChn old_g, arrayChn old_b, int len, int side
 			) / knl_sum;
 
 			if (tmp_r > 255)
-				red[i] = 255;
+				red[i] = (unsigned char) 255;
 			else if (tmp_r < 0)
-				red[i] = 0;
+				red[i] = (unsigned char) 0;
 			else
-				red[i] = tmp_r;
+				red[i] = (unsigned char) tmp_r;
 
 
 			short tmp_g = (short) (
@@ -49,11 +49,11 @@ void ApplyMask(arrayChn old_r, arrayChn old_g, arrayChn old_b, int len, int side
 			) / knl_sum;
 
 			if (tmp_g > 255)
-				green[i] = 255;
+				green[i] = (unsigned char) 255;
 			else if (tmp_g < 0)
-				green[i] = 0;
+				green[i] = (unsigned char) 0;
 			else
-				green[i] = tmp_g;
+				green[i] = (unsigned char) tmp_g;
 
 
 			short tmp_b = (short) (
@@ -65,11 +65,11 @@ void ApplyMask(arrayChn old_r, arrayChn old_g, arrayChn old_b, int len, int side
 			) / knl_sum;
 
 			if (tmp_b > 255)
-				blue[i] = 255;
+				blue[i] = (unsigned char) 255;
 			else if (tmp_b < 0)
-				blue[i] = 0;
+				blue[i] = (unsigned char) 0;
 			else
-				blue[i] = tmp_b;
+				blue[i] = (unsigned char) tmp_b;
 		}
 	}
 }
@@ -120,35 +120,39 @@ int main(int argc, char **argv) {
 		cout << e.what() << std::endl;
 	}
 
+	cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+	
 	// all images must have the same resolution
 	int size_x = list_imgs[0]->getWidth();
 	int size_y = list_imgs[0]->getHeight();
 	int len = size_x * size_y;
 
 	int *knl_device;
-	unsigned short *red_device, *red_device_copy, *red_host;
-	unsigned short *green_device, *green_device_copy, *green_host;
-	unsigned short *blue_device, *blue_device_copy, *blue_host;
+	unsigned char *red_device, *red_device_copy, *red_host;
+	unsigned char *green_device, *green_device_copy, *green_host;
+	unsigned char *blue_device, *blue_device_copy, *blue_host;
 
 	cudaMalloc((void**) &knl_device, knl_size * sizeof(int));
-	cudaMalloc((void**) &red_device, (NumImg * len) * sizeof(unsigned short));
-	cudaMalloc((void**) &green_device, (NumImg * len) * sizeof(unsigned short));	
-	cudaMalloc((void**) &blue_device, (NumImg * len) * sizeof(unsigned short));	
+	cudaMalloc((void**) &red_device, (NumImg * len) * sizeof(unsigned char));
+	cudaMalloc((void**) &green_device, (NumImg * len) * sizeof(unsigned char));	
+	cudaMalloc((void**) &blue_device, (NumImg * len) * sizeof(unsigned char));	
 	
-	cudaMalloc((void**) &red_device_copy, (NumImg * len) * sizeof(unsigned short));
-	cudaMalloc((void**) &green_device_copy, (NumImg * len) * sizeof(unsigned short));	
-	cudaMalloc((void**) &blue_device_copy, (NumImg * len) * sizeof(unsigned short));	
+	cudaMalloc((void**) &red_device_copy, (NumImg * len) * sizeof(unsigned char));
+	cudaMalloc((void**) &green_device_copy, (NumImg * len) * sizeof(unsigned char));	
+	cudaMalloc((void**) &blue_device_copy, (NumImg * len) * sizeof(unsigned char));	
 
-	red_host = new unsigned short[NumImg * len];
-	green_host = new unsigned short[NumImg * len];
-	blue_host = new unsigned short[NumImg * len];
+	red_host = new unsigned char[NumImg * len];
+	green_host = new unsigned char[NumImg * len];
+	blue_host = new unsigned char[NumImg * len];
 
 	int c = 0;
 	for (int id = 0; id < NumImg; ++id) {
 
-		unsigned short** red = list_imgs[id]->getRed();
-		unsigned short** green = list_imgs[id]->getGreen();
-		unsigned short** blue = list_imgs[id]->getBlue();
+		unsigned char** red = (unsigned char**) list_imgs[id]->getRed();
+		unsigned char** green = (unsigned char**) list_imgs[id]->getGreen();
+		unsigned char** blue = (unsigned char**) list_imgs[id]->getBlue();
 
 		for (int i = 0; i < size_x; ++i) {
 			for (int j = 0; j < size_y; ++j) {
@@ -168,20 +172,26 @@ int main(int argc, char **argv) {
 	// cout << endl;
 
 	cudaMemcpy(knl_device, knl_host, (knl_size) * sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(red_device, red_host, (NumImg * len) * sizeof(unsigned short), cudaMemcpyHostToDevice);
-	cudaMemcpy(green_device, green_host, (NumImg * len) * sizeof(unsigned short), cudaMemcpyHostToDevice);
-	cudaMemcpy(blue_device, blue_host, (NumImg * len) * sizeof(unsigned short), cudaMemcpyHostToDevice);
+	cudaMemcpy(red_device, red_host, (NumImg * len) * sizeof(unsigned char), cudaMemcpyHostToDevice);
+	cudaMemcpy(green_device, green_host, (NumImg * len) * sizeof(unsigned char), cudaMemcpyHostToDevice);
+	cudaMemcpy(blue_device, blue_host, (NumImg * len) * sizeof(unsigned char), cudaMemcpyHostToDevice);
 
-	cudaMemcpy(red_device_copy, red_host, (NumImg * len) * sizeof(unsigned short), cudaMemcpyHostToDevice);
-	cudaMemcpy(green_device_copy, green_host, (NumImg * len) * sizeof(unsigned short), cudaMemcpyHostToDevice);
-	cudaMemcpy(blue_device_copy, blue_host, (NumImg * len) * sizeof(unsigned short), cudaMemcpyHostToDevice);
+	cudaMemcpy(red_device_copy, red_host, (NumImg * len) * sizeof(unsigned char), cudaMemcpyHostToDevice);
+	cudaMemcpy(green_device_copy, green_host, (NumImg * len) * sizeof(unsigned char), cudaMemcpyHostToDevice);
+	cudaMemcpy(blue_device_copy, blue_host, (NumImg * len) * sizeof(unsigned char), cudaMemcpyHostToDevice);
 
+	cudaEventRecord(start);
 	ApplyMask<<<NumImg, 1>>>(red_device_copy, green_device_copy, blue_device_copy, len, size_x, knl_device, knl_size, knl_sum, red_device, green_device, blue_device, NumImg);
-	cout << "Acho que ta indo..." << endl;
+	cudaEventRecord(stop);
 
-	cudaMemcpy(red_host, red_device, (NumImg * len) * sizeof(unsigned short), cudaMemcpyDeviceToHost);
-	cudaMemcpy(green_host, green_device, (NumImg * len) * sizeof(unsigned short), cudaMemcpyDeviceToHost);
-	cudaMemcpy(blue_host, blue_device, (NumImg * len) * sizeof(unsigned short), cudaMemcpyDeviceToHost);
+	cudaEventSynchronize(stop);
+    float milliseconds = 0;
+    cudaEventElapsedTime(&milliseconds, start, stop);
+	cout << "Elapsed time running " << NumImg << " images: " << milliseconds << "ms" << endl;
+
+	cudaMemcpy(red_host, red_device, (NumImg * len) * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+	cudaMemcpy(green_host, green_device, (NumImg * len) * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+	cudaMemcpy(blue_host, blue_device, (NumImg * len) * sizeof(unsigned char), cudaMemcpyDeviceToHost);
 
 	for (int i = 0; i < NumImg; i++) {
 		generateImage("../../img/simulation/"+to_string(i+1)+"-out.jpg", red_host, green_host, blue_host, i*len, len, size_x);
